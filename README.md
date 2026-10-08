@@ -21,6 +21,10 @@ Everything is pinned to the current latest release.
 Next 16 Cache Components and Turbopack are enabled. Tailwind v4 is wired
 through `@tailwindcss/turbopack` in `next.config.ts`.
 
+**Node >= 20.9.0 is required.** Next 16 hard-fails the build on older Node, and
+Nixpacks defaults to Node 18, so `nixpacks.toml`, `.nvmrc` and `engines.node`
+all pin Node 22 for the container build.
+
 ## Run it
 
 ```bash
@@ -80,7 +84,12 @@ src/
 
 ## Visual smoke test
 
+Playwright is intentionally **not** a committed dependency — its install hook
+downloads a browser, which is dead weight (and a failure mode) in the
+container build. Install it on demand:
+
 ```bash
 npm run build && npm start
+npm i -D playwright && npx playwright install chromium
 npm run screenshot   # writes ./shots, reports console errors
 ```

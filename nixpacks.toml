@@ -1,0 +1,19 @@
+# Nixpacks build configuration.
+#
+# Without this, Nixpacks falls back to its default Node major (18), but
+# Next.js 16 requires Node >= 20.9.0 and the build aborts with:
+#   "You are using Node.js 18.x. For Next.js, Node.js version ">=20.9.0" is required."
+#
+# Pin Node 22 (LTS) for the setup, build and runtime phases.
+
+[phases.setup]
+nixPkgs = ["nodejs_22", "npm-10_x"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[phases.start]
+runCmd = "npm start"
+
+[variables]
+NIXPACKS_NODE_VERSION = "22"
