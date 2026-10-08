@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# vld.oxog.dev — marketing site
 
-## Getting Started
+A Next.js 16 site for [@oxog/vld](https://github.com/ersinkoc/vld), the
+zero-dependency TypeScript validation library.
 
-First, run the development server:
+## Stack
+
+Everything is pinned to the current latest release.
+
+| Package            | Version  |
+| ------------------ | -------- |
+| next               | 16.4.0   |
+| react / react-dom  | 19.3.0   |
+| tailwindcss        | 4.3.3    |
+| motion             | 14.0.0   |
+| lenis              | 1.3.26   |
+| lucide-react       | 1.53.0   |
+| shiki              | 4.5.0    |
+| @oxog/vld          | 3.0.11   |
+
+Next 16 Cache Components and Turbopack are enabled. Tailwind v4 is wired
+through `@tailwindcss/turbopack` in `next.config.ts`.
+
+## Run it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # http://localhost:3000
+npm run build && npm start
+npm run lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Design notes
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Dark is the default.** The inline script in `src/lib/theme.tsx` resolves the
+theme before first paint, so there is no flash. The `<html>` class is the single
+source of truth and React only reads it, through `useSyncExternalStore` — which
+also keeps hydration clean.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**The site runs the real library.** `@oxog/vld` is a real dependency, not a mock:
 
-## Learn More
+- `src/components/playground.tsx` builds a real schema, parses the payload you
+  type, and renders the actual `VldError.issues`. The `parses/s` readout in the
+  title bar is measured live in your browser.
+- `src/components/i18n-showcase.tsx` calls the real `setLocale()` and re-parses
+  the same invalid payload in 32 languages.
 
-To learn more about Next.js, take a look at the following resources:
+**The hero canvas** (`src/components/validation-gate.tsx`) streams raw input
+particles toward a schema gate: valid data passes through and turns accent
+coloured, invalid data is rejected at the boundary and scatters. It is DPR
+aware, pauses off-screen, and renders a single static frame when the user
+prefers reduced motion.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Syntax highlighting** is done at build time by Shiki with dual light/dark
+themes, so no highlighter ships to the client. The result is wrapped in
+`use cache` because Shiki reads the clock, which Next's prerender guard
+otherwise rejects.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Layout
 
-## Deploy on Vercel
+```
+src/
+  app/
+    layout.tsx            fonts, metadata, theme bootstrap
+    page.tsx              section order
+    globals.css           design tokens + base layer
+    opengraph-image.tsx   generated OG card
+    sitemap.ts robots.ts
+  components/
+    hero.tsx              headline, install bar, spotlight, playground
+    playground.tsx        live VLD validation
+    validation-gate.tsx   hero canvas
+    benchmarks.tsx features.tsx how-it-works.tsx dropin.tsx
+    quick-start.tsx code-block.tsx code-tabs.tsx
+    api-explorer.tsx i18n-showcase.tsx
+    nav.tsx footer.tsx smooth-scroll.tsx
+  lib/
+    theme.tsx site-data.ts code.ts
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Visual smoke test
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run build && npm start
+npm run screenshot   # writes ./shots, reports console errors
+```
